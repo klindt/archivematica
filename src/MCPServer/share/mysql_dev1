@@ -48,4 +48,42 @@ INSERT INTO MicroServiceChains (pk, startingLink, description)
 INSERT INTO WatchedDirectories (pk, watchedDirectoryPath, chain, onlyActOnDirectories, expectedType)
     VALUES (@WatchedDirectory, '%watchDirectoryPath%workFlowDecisions/compressionAIPDecisions/', @MicroServiceChains, True, '76e66677-40e6-41da-be15-709afb334936');
 
+-- /Issue 5084
+
+-- issue-1843
+-- Add ability to generate a DIP from an AIP.
+
+/*
+Technical notes:
+Can't process the AIP/SIP in any other format at same time, unless it becomes its own non-conflicting entity.
+Even still: files will have the same path/uuid, unless new UUID's are assigned.
+
+Assign new file UUIDs to mapping to old file UUIDs.
+Do everything, then with DIP, rename so original fileUUIDs apply.
+Then remove all references to/with faux-fileUUIDs
+
+-maildir? fileGrpUse
+I cheated the system by applying "don't normalize" & a file id type to a key file to normalize a directory.
+If the database was still present:
+| b3b3b726-acef-4d58-82e4-ef8875d654ce | Don't include in DIP.                               |
+As this would be an access command, it wouldn't appear in the mets file.
+
+| 90db809f-268c-4b26-988b-b44c103ac655 | Transcoding maildir to mbox                         |
+*/
+
+/* 
+Assume starting with uncompressed AIP
+Make sure files have UUIDs/entries in the database. Identify fileGrpUse.
+
+Create DIP Directory
+Choice: Normalize based on Original or Service Files
+Normalize Access
+Chance to manually normalize?
+Generate DIP
+-Should be the same as generate DIP in SIP workflow
+Remove AIP copy (created in step 1)
+*/
+
+-- /issue-1843
+
 
