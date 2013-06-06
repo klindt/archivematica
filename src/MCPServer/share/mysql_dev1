@@ -89,8 +89,8 @@ INSERT INTO MicroServiceChains (pk, startingLink, description)
 SET @ExtensionChain = @MicroServiceChains;
 
 
---taskConfig run fits b8403044-12a3-4b63-8399-772b9adace15
---Run FITS
+-- taskConfig run fits b8403044-12a3-4b63-8399-772b9adace15
+-- Run FITS
 SET @TasksConfig = 'b8403044-12a3-4b63-8399-772b9adace15';
 SET @MicroServiceChainLink = 'b063c4ce-ada1-4e72-a137-800f1c10905c';
 SET @MicroServiceChainLinksExitCodes = '41020480-1078-4106-94d9-964ab1af6bd2';
@@ -214,7 +214,6 @@ SET @FITSFileUtilityChain = @MicroServiceChains;
 
 
 -- Choose tool
-@MicroServiceChains
 SET @TasksConfigPKReference = NULL;
 SET @TasksConfig = '1cd60a70-f78e-4625-9381-3863ff819f33';
 SET @MicroServiceChainLink = 'd05eaa5e-344b-4daa-b78b-c9f27c76499d';
@@ -282,27 +281,29 @@ INSERT INTO MicroServiceChainChoice (pk, choiceAvailableAtLink, chainAvailable)
     VALUES                
     (@MicroServiceChainChoice, @MicroServiceChainLink, @chainAvailable);
 
+SET @MicroServiceChains = 'b3b90ab1-39e2-4dea-84a7-34e4c3a13415';
 set @NextMicroServiceChainLink = @MicroServiceChainLink;
 INSERT INTO MicroServiceChains (pk, startingLink, description)
     VALUES (@MicroServiceChains, '01d64f58-8295-4b7b-9cab-8f1b153a504f', 'Select file id type - without existing fits/fileIDbyExt');
 
+SET @WatchedDirectory = 'cb790b11-227a-4e9b-9a7f-e0db198036a4';
 INSERT INTO WatchedDirectories (pk, watchedDirectoryPath, chain, onlyActOnDirectories, expectedType)
     VALUES (@WatchedDirectory, '%watchDirectoryPath%workFlowDecisions/selectFileIDTool/', @MicroServiceChains, True, '76e66677-40e6-41da-be15-709afb334936');
 
 -- -/Normalization tool selection without fits already having been run
-
+DROP TABLE IF EXISTS FauxFileIDsMap;
 CREATE TABLE `FauxFileIDsMap` (
-  `pk` int(11) NOT NULL AUTO_INCREMENT,
+  `pk` int(11) PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `fauxFileUUID` varchar(50) DEFAULT NULL,
   `fileUUID` varchar(50) DEFAULT NULL,
-  CONSTRAINT `FilesIDs_ibfk_1` FOREIGN KEY (`fileUUID`) REFERENCES `Files` (`fileUUID`)
-  CONSTRAINT `FilesIDs_ibfk_2` FOREIGN KEY (`fauxFileUUID`) REFERENCES `Files` (`fileUUID`)
+  FOREIGN KEY (`fileUUID`) REFERENCES `Files` (`fileUUID`),
+  FOREIGN KEY (`fauxFileUUID`) REFERENCES `Files` (`fileUUID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------------------------------------------------------------
 -- Add ability to generate a DIP from an AIP.
 -- Normalize from service or original, approve normalizaiton
---- <alter old workflows>
+-- - <alter old workflows>
 SET @microserviceGroup = 'Normalize';
 
 SET @XLink = '06d5979d-cd45-4a33-a139-0a606a52aa06';
@@ -316,7 +317,7 @@ SET @defaultNextChainLink = @MoveSIPToFailedLink;
 SET @NextMicroServiceChainLink = @YLink;
 
 INSERT INTO TasksConfigsUnitVariableLinkPull (pk, variable, variableValue, defaultMicroServiceChainLink)
-    VALUES (@TasksConfigPKReference, 'postApproveNormalizationLink', @YLink);
+    VALUES (@TasksConfigPKReference, 'postApproveNormalizationLink', '', @YLink);
 INSERT INTO TasksConfigs (pk, taskType, taskTypePKReference, description)
     VALUES
     (@TasksConfig, '36b2e239-4a57-4aa5-8ebc-7a29139baca6', @TasksConfigPKReference, 'Load post approve normalization link');
@@ -346,7 +347,7 @@ SET @defaultNextChainLink = @MoveSIPToFailedLink;
 SET @NextMicroServiceChainLink = @YLink;
 
 INSERT INTO TasksConfigsUnitVariableLinkPull (pk, variable, variableValue, defaultMicroServiceChainLink)
-    VALUES (@TasksConfigPKReference, 'postApproveNormalizationLink', @YLink);
+    VALUES (@TasksConfigPKReference, 'postApproveNormalizationLink', '', @YLink);
 INSERT INTO TasksConfigs (pk, taskType, taskTypePKReference, description)
     VALUES
     (@TasksConfig, '36b2e239-4a57-4aa5-8ebc-7a29139baca6', @TasksConfigPKReference, 'Load post approve normalization link');
@@ -364,12 +365,11 @@ SET @NextMicroServiceChainLink = @MicroServiceChainLink;
 
 UPDATE MicroServiceChains SET startingLink = @MicroServiceChainLink WHERE startingLink = @YLink;
 
---- </alter old workflows>
---- create new ones
+-- - </alter old workflows>
+-- - create new ones
 
---ab0d38 loads finished with manual normalized link. 'returnFromManualNormalized'
+-- ab0d38 loads finished with manual normalized link. 'returnFromManualNormalized'
 
-@MicroServiceChains
 SET @TasksConfigPKReference = NULL;
 SET @TasksConfig = '9413e636-1209-40b0-a735-74ec785ea14a';
 SET @MicroServiceChainLink = 'b3c5e343-5940-4aad-8a9f-fb0eccbfb3a3';
@@ -402,6 +402,8 @@ INSERT INTO MicroServiceChainChoice (pk, choiceAvailableAtLink, chainAvailable)
     VALUES                
     (@MicroServiceChainChoice, @MicroServiceChainLink, @chainAvailable);
 
+SET @WatchedDirectory = 'a9c1fb41-244c-410d-bef6-51cb48d975e2';
+SET @MicroServiceChains = '503d240c-c5a0-4bd5-a5f2-e3e44bd0018a';
 set @NextMicroServiceChainLink = @MicroServiceChainLink;
 INSERT INTO MicroServiceChains (pk, startingLink, description)
     VALUES (@MicroServiceChains, '01d64f58-8295-4b7b-9cab-8f1b153a504f', 'Select file id type - without existing fits/fileIDbyExt');
@@ -613,6 +615,7 @@ INSERT INTO MicroServiceChainLinks (pk, microserviceGroup, currentTask, defaultN
     VALUES (@MicroServiceChainLink, @microserviceGroup, @TasksConfig, @defaultNextChainLink);
 INSERT INTO MicroServiceChainLinksExitCodes (pk, microServiceChainLink, exitCode, nextMicroServiceChainLink)
     VALUES (@MicroServiceChainLinksExitCodes, @MicroServiceChainLink, 179, @NextMicroServiceChainLink);
+SET @MicroServiceChainLinksExitCodes = 'c1f6f15d-2ce9-43fd-841c-1fd916f9fd2e';    
 INSERT INTO MicroServiceChainLinksExitCodes (pk, microServiceChainLink, exitCode, nextMicroServiceChainLink)
     VALUES (@MicroServiceChainLinksExitCodes, @MicroServiceChainLink, 0, @NextMicroServiceChainLink2);
 SET @NextMicroServiceChainLink = @MicroServiceChainLink;
@@ -653,6 +656,7 @@ INSERT INTO MicroServiceChainLinks (pk, microserviceGroup, currentTask, defaultN
     VALUES (@MicroServiceChainLink, @microserviceGroup, @TasksConfig, @defaultNextChainLink);
 INSERT INTO MicroServiceChainLinksExitCodes (pk, microServiceChainLink, exitCode, nextMicroServiceChainLink)
     VALUES (@MicroServiceChainLinksExitCodes, @MicroServiceChainLink, 100, @NextMicroServiceChainLink);
+SET @MicroServiceChainLinksExitCodes = '7f2d5239-b464-4837-8e01-0fc43e31395d';
 INSERT INTO MicroServiceChainLinksExitCodes (pk, microServiceChainLink, exitCode, nextMicroServiceChainLink)
     VALUES (@MicroServiceChainLinksExitCodes, @MicroServiceChainLink, 0, @MoveTransferToFailedLink);
 SET @NextMicroServiceChainLink = @MicroServiceChainLink;
