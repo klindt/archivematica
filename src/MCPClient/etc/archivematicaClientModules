@@ -36,6 +36,7 @@ upload-qubit_v0.0 = upload-qubit
 archivematicaClamscan_v0.0 = %clientScriptsDirectory%archivematicaClamscan.py
 archivematicaSetTransferType_v0.0 = %clientScriptsDirectory%archivematicaSetTransferType.py
 archivematicaVerifyMets_v0.0 = %clientScriptsDirectory%archivematicaVerifyMets.sh
+assignFauxFileUUIDs_v0.0 = %clientScriptsDirectory%assignFauxFileUUIDs.py
 assignFileUUIDs_v0.0 = %clientScriptsDirectory%archivematicaAssignFileUUID.py
 backlogUpdatingTransferFileIndex_v0.0 = %clientScriptsDirectory%backlogUpdatingTransferFileIndex.py
 backupDIP_v0.0 = %clientScriptsDirectory%backupDIP.sh
@@ -53,6 +54,7 @@ createMETS_v0.0 = %clientScriptsDirectory%archivematicaCreateMETS.py
 createMETS_v2.0 = %clientScriptsDirectory%archivematicaCreateMETS2.py
 createSIPfromTransferObjects_v0.0 = %clientScriptsDirectory%createSIPfromTransferObjects.py
 createSIPsfromTRIMTransferContainers_v0.0 = %clientScriptsDirectory%createSIPsfromTRIMTransferContainers.py
+determineAIPVersionKeyExitCode_v0.0 = %clientScriptsDirectory%determineAIPVersionKeyExitCode.py
 echo_v0.0 = /bin/echo
 emailFailReport_v0.0 = %clientScriptsDirectory%emailFailReport.py
 extractBAG_v0.0 = %clientScriptsDirectory%extractBAG.sh
@@ -64,6 +66,7 @@ identifyDspaceLicenseFiles_v0.0 = %clientScriptsDirectory%identifyDspaceLicenseF
 identifyDspaceMETSFiles_v0.0 = %clientScriptsDirectory%identifyDspaceMETSFiles.py
 identifyDspaceTextFiles_v0.0 = %clientScriptsDirectory%identifyDspaceTextFiles.py
 identifyFilesByExtension_v0.0 = %clientScriptsDirectory%identifyFilesByExtension.py
+isMaildirAIP_v0.0 = %clientScriptsDirectory%isMaildirAIP.py
 loadLabelsFromCSV_v0.0 = %clientScriptsDirectory%loadLabelsFromCSV.py
 manualNormalizationCheckForManualNormalizationDirectory_v0.0 = %clientScriptsDirectory%manualNormalizationCheckForManualNormalizationDirectory.py
 manualNormalizationCreateMetadataAndRestructure_v0.0 = %clientScriptsDirectory%manualNormalizationCreateMetadataAndRestructure.py
@@ -85,11 +88,13 @@ removeWithAsterisk_v0.0 = %clientScriptsDirectory%removeWithAsterisk.sh
 restructureBAG_v0.0 = %clientScriptsDirectory%restructureBAG.sh
 restructureForCompliance_v0.0 = %clientScriptsDirectory%restructureForCompliance.py
 restructureForComplianceMaildir_v0.0 = %clientScriptsDirectory%restructureForComplianceMaildir.py
+restructureBagAIPToSIP_v0.0 = %clientScriptsDirectory%restructureBagAIPToSIP.py
 retryNormalizeRemoveNormalized_v0.0 = %clientScriptsDirectory%retryNormalizeRemoveNormalized.py
 sanitizeObjectNames_v0.0 = %clientScriptsDirectory%sanitizeObjectNames.py
 sanitizeSIPName_v0.0 = %clientScriptsDirectory%sanitizeSIPName.py
 setDirectoryPermissionsForAppraisal_v0.0 = %clientScriptsDirectory%setDirectoryPermissionsForAppraisal.sh
 setFilePermission_v0.0 = chmod
+setMaildirFileGrpUseAndFileIDs_v0.0 = %clientScriptsDirectory%setMaildirFileGrpUseAndFileIDs.py
 setSIPQuarantine_v0.0 = %clientScriptsDirectory%quarantineSIP.sh
 sha256deepRelative_v0.0 = %clientScriptsDirectory%sha256deepRelative.sh
 transcoderExtractPackages_v0.0 = /usr/lib/archivematica/transcoder/transcoderExtraction.py
@@ -108,6 +113,7 @@ verifyMD5_v0.0 = %clientScriptsDirectory%verifyMD5.sh
 verifyPREMISChecksums_v0.0 = %clientScriptsDirectory%verifyPREMISChecksums.py
 verifySIPCompliance_v0.0 = %clientScriptsDirectory%verifySIPCompliance.py
 verifyTransferCompliance_v0.0 = %clientScriptsDirectory%verifyTransferCompliance.py
+
 
 
 
