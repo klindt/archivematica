@@ -25,17 +25,24 @@ import base64
 import ConfigParser
 import cPickle
 import datetime
+import logging
 import MySQLdb
 import os
 import re
 import sys
 import time
 from xml.etree import ElementTree
+
 sys.path.append("/usr/lib/archivematica/archivematicaCommon")
 import databaseInterface
 import version
+
 sys.path.append("/usr/lib/archivematica/archivematicaCommon/externals")
 import pyes, xmltodict
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename="/tmp/archivematicaDashboard.log",
+    level=logging.INFO)
 
 pathToElasticSearchServerConfigFile='/etc/elasticsearch/elasticsearch.yml'
 
