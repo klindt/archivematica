@@ -92,7 +92,7 @@ def index(request):
         },
         {
             "name":       "manual_normalization_wait",
-            "label":      "Skip waiting to allow manual normalization metadata entry",
+            "label":      "Skip manual normalization metadata entry",
             "applies_to": "Add manual normalization metadata?",
             "yes_option": "Metadata entered",
             "action":     "Metadata entered",

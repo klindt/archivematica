@@ -1,6 +1,5 @@
 {% extends "layout_fluid.html" %}
-{% load breadcumbs %}
-{% load url from future %}
+{% load breadcrumb %}
 
 {% block content %}
   <div class="row">
@@ -13,6 +12,7 @@
       </ul>
 
       <h1>Normalization Event Detail<br /><small>{{ name }}</small></h1>
+      {% if events %}
       <form method="post" action="">
         {{ formset.management_form }}
         {{ formset.non_form_errors.as_ul }}
@@ -44,6 +44,10 @@
           <a href="{% url 'components.ingest.views.ingest_detail' uuid %}" class="btn">Cancel</a>
         </div>
       </form>
+      {% else %}
+        <p>No manually normalized files detected by Archivematica.  Please try again after normalization.</p>
+        <a href="{% url 'components.ingest.views.ingest_detail' uuid %}" class="btn">Cancel</a>
+      {% endif %}
     </div>
   </div>
 {% endblock %}
