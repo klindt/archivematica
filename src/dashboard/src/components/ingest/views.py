@@ -15,12 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Archivematica.  If not, see <http://www.gnu.org/licenses/>.
 
-# stdlib, alphabetical by import source
+# Standard library, alphabetical by import source
 import calendar
 import cPickle
 import json
-from lxml import etree
 import MySQLdb
+import logging
+from lxml import etree
 import os
 import shutil
 import socket
@@ -30,26 +31,27 @@ import uuid
 # Django core, alphabetical
 from django.conf import settings as django_settings
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max
 from django.forms.models import modelformset_factory
 from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from django.template import RequestContext
+from django.utils.text import slugify
 
-# External dependencies, alphabetical
+# External dependencies, alphabetical by import source
 
-# This project, alphabetical
+# This project, alphabetical by import source
 from contrib.mcp.client import MCPClient
 from contrib import utils
 from main import forms
 from main import models
-from components.ingest.forms import DublinCoreMetadataForm
 from components.ingest.views_NormalizationReport import getNormalizationReportQuery
 from components import helpers
 from components import decorators
 from components import advanced_search
+from components.ingest import forms as ingest_forms
+
 
 sys.path.append("/usr/lib/archivematica/archivematicaCommon")
 import elasticSearchFunctions, databaseInterface, databaseFunctions
@@ -57,7 +59,12 @@ from archivematicaCreateStructuredDirectory import createStructuredDirectory
 
 sys.path.append("/usr/lib/archivematica/archivematicaCommon/externals")
 import pyes, requests
-from components.archival_storage.forms import StorageSearchForm
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename="/tmp/archivematicaDashboard.log",
+    level=logging.INFO)
+
 
 """ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
       Ingest
@@ -144,37 +151,79 @@ def ingest_metadata_list(request, uuid, jobs, name):
 
 def ingest_metadata_edit(request, uuid, id=None):
     if id:
+        # If we have the ID of the DC object, use that - Edit
         dc = models.DublinCore.objects.get(pk=id)
     else:
-        # Right now we only support linking metadata to the Ingest
+        # Otherwise look for a SIP with the provided UUID, creating a new one
+        # if needed.  Not using get_or_create because that save the empty
+        # object, even if the form is not submitted.
+        sip_type_id = ingest_sip_metadata_type_id()
         try:
-            dc = models.DublinCore.objects.get_sip_metadata(uuid)
-            return redirect('components.ingest.views.ingest_metadata_edit', uuid, dc.id)
-        except ObjectDoesNotExist:
+            dc = models.DublinCore.objects.get(
+                metadataappliestotype=sip_type_id,
+                metadataappliestoidentifier=uuid)
+            id = dc.id
+        except models.DublinCore.DoesNotExist:
             dc = models.DublinCore(
-                metadataappliestotype=ingest_sip_metadata_type_id(),
-                metadataappliestoidentifier=uuid
-            )
+                metadataappliestotype=sip_type_id,
+                metadataappliestoidentifier=uuid)
 
-    fields = ['title', 'creator', 'subject', 'description', 'publisher',
-              'contributor', 'date', 'type', 'format', 'identifier',
-              'source', 'relation', 'language', 'coverage', 'rights']
-
-    if request.method == 'POST':
-        form = DublinCoreMetadataForm(request.POST)
-        if form.is_valid():
-            for item in fields:
-                setattr(dc, item, form.cleaned_data[item])
-            dc.save()
-            return redirect('components.ingest.views.ingest_metadata_list', uuid)
+    # If the SIP is an AIC, use the AIC metadata form
+    if models.SIP.objects.get(uuid=uuid).sip_type == 'AIC':
+        form = ingest_forms.AICDublinCoreMetadataForm(request.POST or None,
+            instance=dc)
+        dc_type = "Archival Information Collection"
     else:
-        initial = {}
-        for item in fields:
-            initial[item] = getattr(dc, item)
-        form = DublinCoreMetadataForm(initial=initial)
-        jobs = models.Job.objects.filter(sipuuid=uuid, subjobof='')
-        name = utils.get_directory_name(jobs[0])
+        form = ingest_forms.DublinCoreMetadataForm(request.POST or None,
+            instance=dc)
+        dc_type = "Archival Information Package"
 
+    if form.is_valid():
+        dc = form.save()
+        dc.type = dc_type
+        dc.save()
+        return redirect('components.ingest.views.ingest_metadata_list', uuid)
+    jobs = models.Job.objects.filter(sipuuid=uuid, subjobof='')
+    name = utils.get_directory_name(jobs[0])
+
+    return render(request, 'ingest/metadata_edit.html', locals())
+
+
+def aic_metadata_add(request, uuid):
+    sip_type_id = ingest_sip_metadata_type_id()
+    try:
+        dc = models.DublinCore.objects.get(
+            metadataappliestotype=sip_type_id,
+            metadataappliestoidentifier=uuid)
+        id = dc.id
+    except models.DublinCore.DoesNotExist:
+        dc = models.DublinCore(
+            metadataappliestotype=sip_type_id,
+            metadataappliestoidentifier=uuid)
+
+    form = ingest_forms.AICDublinCoreMetadataForm(request.POST or None, instance=dc)
+    if form.is_valid():
+        # Save the metadata
+        dc = form.save()
+        dc.type = "Archival Information Collection"
+        dc.save()
+
+        # Start the MicroServiceChainLink for the AIC
+        shared_dir = helpers.get_server_config_value('sharedDirectory')
+        source = os.path.join(shared_dir, 'staging', uuid)
+
+        watched_dir = helpers.get_server_config_value('watchDirectoryPath')
+        name = slugify(dc.title).replace('-', '_')
+        dir_name = '{name}-{uuid}'.format(name=name, uuid=uuid)
+        destination = os.path.join(watched_dir, 'system', 'createAIC', dir_name)
+
+        destination_db = destination.replace(shared_dir, '%sharedPath%')+'/'
+        models.SIP.objects.filter(uuid=uuid).update(currentpath=destination_db)
+        shutil.move(source, destination)
+        return redirect('ingest_index')
+
+    name = dc.title or "New AIC"
+    aic = True
     return render(request, 'ingest/metadata_edit.html', locals())
 
 def ingest_metadata_event_detail(request, uuid):
@@ -445,7 +494,6 @@ def transfer_backlog(request):
     except:
         results = False
 
-    form = StorageSearchForm(initial={'query': queries[0]})
     return render(request, 'ingest/backlog/search.html', locals())
 
 def transfer_backlog_augment_search_results(raw_results):
