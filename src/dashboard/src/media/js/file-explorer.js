@@ -524,13 +524,13 @@
     $el.css({top: exports.Data['mouseY'] - exports.Data.startY[id] + 5});
   };
 
-  /* Internal representation of the file explorer */
+  /* Internal representation of a list of entries */
   exports.EntryList = Backbone.View.extend({
 
     tagName: 'div',
 
     initialize: function() {
-      this.results     = this.options.results || [];
+      this.entries     = this.options.entries || [];
       this.moveHandler = this.options.moveHandler;
       this.template    = this.options.template;
       this.id          = $(this.el).attr('id');
@@ -540,17 +540,32 @@
 
     dragHandler: dragHandler,
 
+    // logic to simply put anything dropped on the entry list
+    // back where it was originally placed
+    dropHandler: function(event) {
+      var droppedId   = event.dragTarget.id;
+
+      $('#' + droppedId).css({left: 0});
+      $('#' + droppedId).css({top: 0});
+    },
+
     // bind/re-bind drag-and-drop logic
     initDragAndDrop: function() {
       if (this.moveHandler) {
         // bind drag-and-drop functionality
         var self = this;
 
-       // exclude top-level directory from being dragged
-       $(this.el)
-          .find('.backbone-file-explorer-entry:not(:first)')
+        // bind all list entries to drag handler
+        $(this.el)
+          .find('.backbone-file-explorer-entry')
           .unbind('drag')
           .bind('drag', {'self': self}, self.dragHandler);
+
+        // bind all list entries to drop handler
+        $(this.el)
+          .find('.backbone-file-explorer-entry')
+          .unbind('drop')
+          .bind('drop', {'self': self}, self.dropHandler);
       }
     },
 
@@ -558,10 +573,10 @@
     render: function() {
       $(this.el).empty();
 
-      for (var index = 0; index < this.results.length; index++) {
+      for (var index = 0; index < this.entries.length; index++) {
         var entry = new exports.EntryView({
           'el': this.el,
-          'entry': this.results[index],
+          'entry': this.entries[index],
           'template': this.template,
           'explorer': this
         });
