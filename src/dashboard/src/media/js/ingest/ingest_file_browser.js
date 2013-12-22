@@ -19,7 +19,7 @@ along with Archivematica.  If not, see <http://www.gnu.org/licenses/>.
 function setupBacklogBrowser(originalsDirectory, arrangeDirectory) {
   var backlogBrowserEntryClickHandler = function(event) {
     if (typeof event.data != 'undefined') {
-      var explorer = event.data.self.explorer
+      var explorer = event.data.self.container
         , explorerId = explorer.id
 
         var entryEl = this

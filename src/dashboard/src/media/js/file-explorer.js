@@ -110,7 +110,7 @@
 
     initialize: function() {
       this.model     = this.options.entry;
-      this.explorer  = this.options.explorer;
+      this.container = this.options.container;
       this.className = (this.model.children != undefined)
         ? 'backbone-file-explorer-directory'
         : 'directory-file';
@@ -128,7 +128,7 @@
     },
 
     cssId: function() {
-      return this.explorer.id + '_' + this.model.id();
+      return this.container.id + '_' + this.model.id();
     },
 
     render: function() {
@@ -145,7 +145,7 @@
 
       // set CSS ID for entries (used to capture whether directory is
       // open/closed by user between data refreshes, etc.)
-      var id = (this.explorer) ? this.explorer.id + '_' : '';
+      var id = (this.container) ? this.container.id + '_' : '';
       $(this.el).attr('id', id + this.model.id());
 
       // add entry click handler if specified
@@ -195,7 +195,7 @@
         // add click handler to directory icon
         var self = this;
         $(this.el).children('.backbone-file-explorer-directory_icon_button').click(function() {
-          self.explorer.toggleDirectory($(self.el));
+          self.container.toggleDirectory($(self.el));
         });
       }
 
@@ -323,7 +323,7 @@
 
             // render entry
             var entryView = new exports.EntryView({
-              explorer: self.explorer,
+              container: self.explorer,
               entry: child,
               template: self.entryTemplate,
               entryClickHandler: self.entryClickHandler,
@@ -474,7 +474,7 @@
     // render a group of files and directories
     render: function() {
       var entryView = new exports.EntryView({
-        explorer: this.explorer,
+        container: this.explorer,
         entry: this.model,
         template: this.entryTemplate
       });
@@ -578,7 +578,7 @@
           'el': this.el,
           'entry': this.entries[index],
           'template': this.template,
-          'explorer': this
+          'container': this
         });
         exports.Data.idPaths[this.id + '_' + entry.model.id()] = entry.model.path();
         entry.render();
