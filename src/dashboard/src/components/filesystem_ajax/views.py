@@ -81,7 +81,7 @@ def originals_contents(request):
                 transfer = models.Transfer.objects.get(uuid=possible_uuid)
                 data = {'transfer_uuid': possible_uuid}
                 if transfer.accessionid != None:
-                    data['accession_id'] = transfer.accessionid
+                    data['accessionId'] = transfer.accessionid
                 child['data'] = data
             except:
                 pass
