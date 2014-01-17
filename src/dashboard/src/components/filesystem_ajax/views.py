@@ -171,7 +171,7 @@ def copy_transfer_component(request):
 
                 # cycle through each path copying files/dirs inside it to transfer dir
                 try:
-                    entries = sorted_directory_list(path)
+                    entries = filesystem_ajax_helpers.sorted_directory_list(path)
                 except os.error as e:
                     error = "Error: {e.strerror}: {e.filename}".format(e=e)
                     # Clean up temp dir - don't use os.removedirs because
