@@ -22,6 +22,7 @@
 # @author Joseph Perry <joseph@artefactual.com>
 
 import datetime
+import logging
 import lxml.etree as etree
 import os
 import sys
@@ -38,6 +39,10 @@ choicesAvailableForUnits = {}
 choicesAvailableForUnitsLock = threading.Lock()
 sys.path.append("/usr/lib/archivematica/archivematicaCommon")
 from archivematicaFunctions import unicodeToStr
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename="/tmp/archivematicaDashboard.log",
+                    level=logging.DEBUG)
 
 waitingOnTimer="waitingOnTimer"
 
@@ -73,7 +78,7 @@ class linkTaskManagerChoice(LinkTaskManager):
             choicesAvailableForUnitsLock.release()
 
     def checkForPreconfiguredXML(self):
-        ret = None
+        desiredChoice = None
         xmlFilePath = os.path.join( \
                                         self.unit.currentPath.replace("%sharedPath%", archivematicaMCP.config.get('MCPServer', "sharedDirectory"), 1), \
                                         archivematicaMCP.config.get('MCPServer', "processingXMLFile") \
@@ -89,17 +94,9 @@ class linkTaskManagerChoice(LinkTaskManager):
                 exitCode, stdOut, stdError = executeOrRun("command", command, "", printing=False)
                 tree = etree.parse(xmlFilePath)
                 root = tree.getroot()
-                for preconfiguredChoice in root.find("preconfiguredChoices"):
-                    #if int(preconfiguredChoice.find("appliesTo").text) == self.jobChainLink.pk:
-                    if preconfiguredChoice.find("appliesTo").text == self.jobChainLink.description:
+                for preconfiguredChoice in root.findall(".//preconfiguredChoice"):
+                    if preconfiguredChoice.find("appliesTo").text == self.jobChainLink.pk:
                         desiredChoice = preconfiguredChoice.find("goToChain").text
-                        sql = """SELECT MicroServiceChains.pk FROM MicroServiceChainChoice Join MicroServiceChains on MicroServiceChainChoice.chainAvailable = MicroServiceChains.pk WHERE MicroServiceChains.description = '%s' AND MicroServiceChainChoice.choiceAvailableAtLink = '%s';""" % (desiredChoice, self.jobChainLink.pk.__str__())
-                        c, sqlLock = databaseInterface.querySQL(sql)
-                        row = c.fetchone()
-                        while row != None:
-                            ret = row[0]
-                            row = c.fetchone()
-                        sqlLock.release()
                         try:
                             #<delay unitAtime="yes">30</delay>
                             delayXML = preconfiguredChoice.find("delay")
@@ -115,17 +112,17 @@ class linkTaskManagerChoice(LinkTaskManager):
                                 #print "that will be: ", (nowTime + timeToGo)
                                 self.jobChainLink.setExitMessage("Waiting till: " + datetime.datetime.fromtimestamp((nowTime + timeToGo)).ctime())
 
-                                t = threading.Timer(timeToGo, self.proceedWithChoice, args=[ret, None], kwargs={"delayTimerStart":True})
+                                t = threading.Timer(timeToGo, self.proceedWithChoice, args=[desiredChoice, None], kwargs={"delayTimerStart":True})
                                 t.daemon = True
                                 self.delayTimer = t
                                 t.start()
                                 return None
 
-                        except Exception as inst:
-                            print >>sys.stderr, "Error parsing xml for pre-configured choice"
-            except Exception as inst:
-                print >>sys.stderr, "Error parsing xml for pre-configured choice"
-        return ret
+                        except Exception:
+                            logger.exception("Error parsing xml for pre-configured choice")
+            except Exception:
+                logger.exception("Error parsing xml for pre-configured choice")
+        return desiredChoice
 
     def xmlify(self):
         """Returns an etree XML representation of the choices available."""
