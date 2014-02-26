@@ -1,3 +1,4 @@
+import base64
 import logging
 import os
 import platform
@@ -129,9 +130,15 @@ def get_location_by_uri(uri):
     return api.location(uri).get()
 
 def browse_location(uuid, path):
-    """ Browse files in a location. """
+    """
+    Browse files in a location. Encodes path in base64 for transimission, returns decoded entries.
+    """
     api = _storage_api()
-    return api.location(uuid).browse.get(path=path)
+    path = base64.b64encode(path)
+    browse = api.location(uuid).browse.get(path=path)
+    browse['entries'] = map(base64.b64decode, browse['entries'])
+    browse['directories'] = map(base64.b64decode, browse['directories'])
+    return browse
 
 def create_sip(files):
     api = _storage_api()
@@ -141,7 +148,7 @@ def create_sip(files):
     backlog = get_location(purpose='BL')[0]
     # Get currently processing location
     processing = get_location(purpose='CP')[0]
-    pipeline = _get_pipeline(get_setting('dashboard_uuid'))
+    pipeline = _get_pipeline(get_setting_no_orm('dashboard_uuid'))
 
     new_sip = {
         'origin_location': backlog['resource_uri'],

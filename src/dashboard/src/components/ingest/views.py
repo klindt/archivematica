@@ -16,6 +16,7 @@
 # along with Archivematica.  If not, see <http://www.gnu.org/licenses/>.
 
 # Standard library, alphabetical by import source
+import base64
 import calendar
 import cPickle
 import json
@@ -399,9 +400,12 @@ def _es_results_to_directory_tree(path, return_list, not_draggable=False):
     if parts[0] in ('logs', 'metadata'):
         not_draggable = True
     if len(parts) == 1:  # path is a file
-        return_list.append({'name': parts[0], 'not_draggable': not_draggable})
+        return_list.append({
+            'name': base64.b64encode(parts[0]),
+            'not_draggable': not_draggable})
     else:
         node, others = parts
+        node = base64.b64encode(node)
         if not return_list or return_list[-1]['name'] != node:
             return_list.append({
                 'name': node,
