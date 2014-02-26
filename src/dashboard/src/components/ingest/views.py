@@ -25,12 +25,10 @@ import os
 import shutil
 import socket
 import sys
-import uuid
 
 # Django Core, alphabetical by import source
 from django.conf import settings as django_settings
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max
 from django.forms.models import modelformset_factory
@@ -48,7 +46,6 @@ from components import advanced_search
 from components import helpers
 from components import decorators
 from components.ingest import forms as ingest_forms
-import components.ingest.helpers as ingest_helpers
 from components.ingest.views_NormalizationReport import getNormalizationReportQuery
 from main import forms
 from main import models
