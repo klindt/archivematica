@@ -101,6 +101,7 @@ removeWithAsterisk_v0.0 = %clientScriptsDirectory%removeWithAsterisk.sh
 renameDIPFauxToOrigUUIDs_v0.0 = %clientScriptsDirectory%renameDIPFauxToOrigUUIDs.py
 restructureBAG_v0.0 = %clientScriptsDirectory%restructureBAG.sh
 restructureForCompliance_v0.0 = %clientScriptsDirectory%restructureForCompliance.py
+restructureForComplianceSIP_v0.0 = %clientScriptsDirectory%restructureForComplianceSIP.py
 restructureForComplianceMaildir_v0.0 = %clientScriptsDirectory%restructureForComplianceMaildir.py
 restructureBagAIPToSIP_v0.0 = %clientScriptsDirectory%restructureBagAIPToSIP.py
 retryNormalizeRemoveNormalized_v0.0 = %clientScriptsDirectory%retryNormalizeRemoveNormalized.py
