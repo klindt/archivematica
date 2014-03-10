@@ -370,7 +370,7 @@ def copy_from_arrange_to_completed(request):
                     files.append(file_)
 
         # Move files from backlog to local staging path
-        (sip, error) = storage_service.create_sip(files)
+        (sip, error) = storage_service.get_files_from_backlog(files)
 
         if error is None:
             # Create SIP object
