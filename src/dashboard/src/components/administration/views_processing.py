@@ -98,6 +98,14 @@ def index(request):
             "yes_option":   "9efab23c-31dc-4cbd-a39d-bb1665460cbe", # Store AIP
             "action":       "Store AIP"
         },
+        {
+            "name":         "tree",
+            "choice_uuid":  "56eebd45-5600-4768-a8c2-ec0114555a3d",
+            "label":        "Generate transfer tree",
+            "yes_option":   "df54fec1-dae1-4ea6-8d17-a839ee7ac4a7", # Generate transfer tree
+            "no_option":    "e9eaef1e-c2e0-4e3b-b942-bfb537162795",
+            "action":       "Generate transfer tree"
+        },
     ]
 
     # name: Value of the `name` attribute in the <input> HTML element
