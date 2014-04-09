@@ -184,6 +184,8 @@ def create_file(uuid, origin_location, origin_path, current_location,
         'origin_pipeline': pipeline['resource_uri'],
     }
 
+    with open('/tmp/store.log', 'w') as log: print >> log, new_file
+
     logging.info("Creating file with {}".format(new_file))
     try:
         file_ = api.file.post(new_file)
