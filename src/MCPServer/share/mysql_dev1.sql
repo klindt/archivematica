@@ -387,3 +387,34 @@ INSERT INTO MicroServiceChainLinks(pk, microserviceGroup, defaultExitMessage, cu
 INSERT INTO MicroServiceChainLinksExitCodes (pk, microServiceChainLink, exitCode, nextMicroServiceChainLink, exitMessage) VALUES ('5ffe0c72-5a98-4fa5-8281-a266471ffb2c', '970b7d17-7a6b-4d51-808b-c94b78c0d97f', 0, '15a2df8a-7b45-4c11-b6fa-884c9b7e5c67', 'Completed successfully');
 UPDATE MicroServiceChainLinksExitCodes SET nextMicroServiceChainLink='970b7d17-7a6b-4d51-808b-c94b78c0d97f' WHERE microServiceChainLink='a46e95fe-4a11-4d3c-9b76-c5d8ea0b094d';
 -- /Issue 6217
+
+-- Issue 6565 OCR
+-- Inserts a new "transcribe file" microservice.
+-- This is a new microservice that runs FPR commands to create transcription
+-- derivatives of content. The initial command provided by Archivematica will
+-- run OCR on images.
+--
+-- Insert choice of whether or not to transcribe
+SET @transcribeChoiceMSCL = '7079be6d-3a25-41e6-a481-cee5f352fe6e' COLLATE utf8_unicode_ci;
+SET @transcribeChoiceTC = '4c64875e-9f31-4596-96d9-f99bc886bb24' COLLATE utf8_unicode_ci;
+SET @preTranscribeMSCL = '88affaa2-13c5-4efb-a860-b182bd46c2c6' COLLATE utf8_unicode_ci;
+SET @postTranscribeMSCL = 'f060d17f-2376-4c0b-a346-b486446e46ce' COLLATE utf8_unicode_ci;
+
+INSERT INTO TasksConfigs (pk, taskType, taskTypePKReference, description) VALUES (@transcribeChoiceTC, '9c84b047-9a6d-463f-9836-eafa49743b84', NULL, 'Transcribe SIP contents');
+INSERT INTO MicroServiceChainLinks (pk, microserviceGroup, defaultExitMessage, currentTask, defaultNextChainLink) VALUES (@transcribeChoiceMSCL, 'Normalize', 'Failed', @transcribeChoiceTC, @transcribeFileMSCL);
+UPDATE MicroServiceChainLinks SET defaultNextChainLink=@transcribeChoiceMSCL WHERE pk=@preTranscribeMSCL;
+UPDATE MicroServiceChainLinksExitCodes SET nextMicroServiceChainLink=@transcribeChoiceMSCL WHERE microServiceChainLink=@preTranscribeMSCL;
+
+SET @transcribeYes = '5a9985d3-ce7e-4710-85c1-f74696770fa9' COLLATE utf8_unicode_ci;
+SET @transcribeNo = '1170e555-cd4e-4b2f-a3d6-bfb09e8fcc53' COLLATE utf8_unicode_ci;
+INSERT INTO MicroServiceChoiceReplacementDic (pk, choiceAvailableAtLink, description, replacementDic) VALUES (@transcribeYes, @transcribeChoiceMSCL, 'Yes', '{"%transcribe%": "True"}');
+INSERT INTO MicroServiceChoiceReplacementDic (pk, choiceAvailableAtLink, description, replacementDic) VALUES (@transcribeNo, @transcribeChoiceMSCL, 'No', '{"%transcribe%": "False"}');
+
+SET @transcribeFileMSCL = '2900f6d8-b64c-4f2a-8f7f-bb60a57394f6' COLLATE utf8_unicode_ci;
+INSERT INTO StandardTasksConfigs (pk, requiresOutputLock, execute, arguments, filterSubDir) VALUES ('657bdd72-8f18-4477-8018-1f6c8df7ad85', 0, 'transcribeFile_v0.0', '"%currentLocation%" "%fileUUID%" "%transcribe%"', 'objects');
+INSERT INTO TasksConfigs (pk, taskType, taskTypePKReference, description) VALUES ('297e7ebd-71bb-41e9-b1b7-945b6a9f00c5', 'a6b1c323-7d36-428e-846a-e7e819423577', '657bdd72-8f18-4477-8018-1f6c8df7ad85', 'Transcribe');
+INSERT INTO MicroServiceChainLinks(pk, microserviceGroup, defaultExitMessage, currentTask, defaultNextChainLink) values (@transcribeFileMSCL, 'Normalize', 'Failed', '297e7ebd-71bb-41e9-b1b7-945b6a9f00c5', @postTranscribeMSCL);
+
+INSERT INTO MicroServiceChainLinksExitCodes (pk, microServiceChainLink, exitCode, nextMicroServiceChainLink, exitMessage) VALUES ('22ebafb1-3ec3-406a-939d-4eb9f3b8bbd1', @transcribeChoiceMSCL, 0, @transcribeFileMSCL, 'Completed successfully');
+INSERT INTO MicroServiceChainLinksExitCodes (pk, microServiceChainLink, exitCode, nextMicroServiceChainLink, exitMessage) VALUES ('804d4d23-e81b-4d81-8e67-1a3b5470c841', @transcribeFileMSCL, 0, @postTranscribeMSCL, 'Completed successfully');
+-- /Issue 6565 OCR
