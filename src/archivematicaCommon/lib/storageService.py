@@ -133,6 +133,33 @@ def browse_location(uuid, path):
     api = _storage_api()
     return api.location(uuid).browse.get(path=path)
 
+def create_sip(files):
+    api = _storage_api()
+
+    # Get Backlog location UUID
+    # Assuming only one backlog location
+    backlog = get_location(purpose='BL')[0]
+    # Get currently processing location
+    processing = get_location(purpose='CP')[0]
+    pipeline = _get_pipeline(get_setting('dashboard_uuid'))
+
+    new_sip = {
+        'origin_location': backlog['resource_uri'],
+        'files': files,
+        'pipeline': pipeline['resource_uri'],
+    }
+    try:
+        sip = api.location(processing['uuid']).post(new_sip)
+    except slumber.exceptions.HttpClientError as e:
+        logging.warning("Unable to create SIP from {} because {}".format(new_sip, e.content))
+        return (None, e)
+    except slumber.exceptions.HttpServerError as e:
+        logging.warning("Could not connect to storage service: {} ({})".format(
+            e, e.content))
+        return (None, e)
+    return (sip, None)
+
+
 ############# SPACES #############
 
 def get_space(access_protocol=None, path=None):
