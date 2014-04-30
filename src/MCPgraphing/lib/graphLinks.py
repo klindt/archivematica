@@ -67,8 +67,18 @@ def loadAllLinks():
         script_name = databaseInterface.queryAllSQL(sql)
         if script_name:
             script_name = script_name[0][0]
-        nodeName = r"{%s} %s\n(%s) [%s]" % (pk, description, taskType, script_name or pkRef)
-        G.add_node(nodeName, URL="MicroServiceChainLinks/%s" % pk, label=nodeName, id=nodeName)
+        elif not script_name:
+            sql = """SELECT variable, variableValue, microServiceChainLink FROM TasksConfigsSetUnitVariable WHERE pk='%s';""" % pkRef
+            returned = databaseInterface.queryAllSQL(sql)
+            if returned:
+                script_name = '%s, %s' % (returned[0][0], returned[0][1] or returned[0][2])
+        nodeName = r"{%s} %s\n(%s) %s\n[%s]" % (pk, description, taskType, pkRef, script_name or '')
+        # Color if start of chain
+        border_color = 'black'
+        sql = """SELECT * FROM MicroServiceChains WHERE startingLink='%s';""" % pk
+        if databaseInterface.queryAllSQL(sql):
+            border_color='darkgoldenrod'
+        G.add_node(nodeName, URL="MicroServiceChainLinks/%s" % pk, label=nodeName, id=nodeName, color=border_color)
         linkUUIDtoNodeName[pk] = nodeName
     for link in links:
         pk = link[0]
@@ -80,12 +90,15 @@ def loadAllLinks():
 def bridgeExitCodes():
     ""
     global allLinks
-    sql = """SELECT microServiceChainLink, nextMicroServiceChainLink FROM MicroServiceChainLinksExitCodes;"""
+    sql = """SELECT microServiceChainLink, nextMicroServiceChainLink, exitCode FROM MicroServiceChainLinksExitCodes;"""
     links = databaseInterface.queryAllSQL(sql)
     for link in links:
-        microServiceChainLink, nextMicroServiceChainLink = link
+        microServiceChainLink, nextMicroServiceChainLink, exit_code = link
         if nextMicroServiceChainLink:
-            addArrow(microServiceChainLink, nextMicroServiceChainLink)
+            if exit_code:
+                addArrow(microServiceChainLink, nextMicroServiceChainLink, label=exit_code)
+            else:
+                addArrow(microServiceChainLink, nextMicroServiceChainLink)
     return
 
 def bridgeUserSelections():
