@@ -39,7 +39,7 @@ import storageService as storage_service
 
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename="/tmp/archivematicaDashboard.log",
+logging.basicConfig(filename="/var/log/archivematica/dashboard.log",
     level=logging.INFO)
 
 """ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
