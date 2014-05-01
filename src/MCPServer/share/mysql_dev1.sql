@@ -464,3 +464,39 @@ INSERT INTO MicroServiceChainLinks(pk, microserviceGroup, defaultExitMessage, cu
 INSERT INTO MicroServiceChainLinksExitCodes (pk, microServiceChainLink, exitCode, nextMicroServiceChainLink, exitMessage) VALUES ('95ba6779-2ed2-47ea-a7ad-df4a4cf3764d', '43c72f8b-3cea-4b4c-b99d-cfdefdfcc270', 0, '6ee25a55-7c08-4c9a-a114-c200a37146c4', 'Completed successfully');
 UPDATE MicroServiceChainLinksExitCodes SET nextMicroServiceChainLink='43c72f8b-3cea-4b4c-b99d-cfdefdfcc270' WHERE microServiceChainLink='ad011cc2-b0eb-4f51-96bb-400149a2ea11';
 -- /Issue 6565 OCR
+
+-- Issue 6566 Tree
+SET @treeChoiceChain = 'f6df8882-d076-441e-bb00-2f58d5eda098' COLLATE utf8_unicode_ci;
+SET @treeChain = 'df54fec1-dae1-4ea6-8d17-a839ee7ac4a7' COLLATE utf8_unicode_ci;
+SET @noTreeChain = 'e9eaef1e-c2e0-4e3b-b942-bfb537162795' COLLATE utf8_unicode_ci;
+set @treeMSCL = '4efe00da-6ed0-45dd-89ca-421b78c4b6be' COLLATE utf8_unicode_ci;
+set @postTreeMSCL = '1b1a4565-b501-407b-b40f-2f20889423f1' COLLATE utf8_unicode_ci;
+
+SET @treeChoiceWatchMSCL = '559d9b14-05bf-4136-918a-de74a821b759' COLLATE utf8_unicode_ci;
+SET @treeChoiceWatchTC = '48416179-7ae4-47cc-a0aa-f9847da08c63' COLLATE utf8_unicode_ci;
+SET @treeChoiceWatchSTC = '760a9654-de3e-4ea7-bb76-eeff06acdf95' COLLATE utf8_unicode_ci;
+INSERT INTO StandardTasksConfigs (pk, requiresOutputLock, execute, arguments) VALUES (@treeChoiceWatchSTC, 0, 'moveTransfer_v0.0', '"%SIPDirectory%" "%sharedPath%watchedDirectories/workFlowDecisions/createTree/"');
+INSERT INTO TasksConfigs (pk, taskType, taskTypePKReference, description) VALUES (@treeChoiceWatchTC, '36b2e239-4a57-4aa5-8ebc-7a29139baca6', @treechoiceWatchSTC, 'Move to generate transfer tree');
+INSERT INTO MicroServiceChainLinks (pk, microserviceGroup, defaultExitMessage, currentTask, defaultNextChainLink) VALUES (@treeChoiceWatchMSCL, 'Characterize and extract metadata', 'Failed', @treeChoiceWatchTC, @MoveTransferToFailedLink);
+
+SET @treeChoiceMSCL = '56eebd45-5600-4768-a8c2-ec0114555a3d' COLLATE utf8_unicode_ci;
+SET @treeChoiceTC = 'f1ebd62a-fbf3-4790-88e8-4a3abec4ba00' COLLATE utf8_unicode_ci;
+INSERT INTO TasksConfigs (pk, taskType, description) VALUES (@treeChoiceTC, '61fb3874-8ef6-49d3-8a2d-3cb66e86a30c', 'Generate transfer structure diagram');
+INSERT INTO MicroServiceChainLinks (pk, microserviceGroup, defaultExitMessage, currentTask) VALUES (@treeChoiceMSCL, 'Characterize and extract metadata', 'Failed', @treeChoiceTC);
+
+INSERT INTO MicroServiceChains (pk, startingLink, description) VALUES (@treeChoiceChain, @treeChoiceMSCL, 'Generate transfer structure diagram');
+INSERT INTO WatchedDirectories(pk, watchedDirectoryPath, chain, expectedType) VALUES ('e237217e-7b07-48f0-8129-36da0abfc97f', '%watchDirectoryPath%workFlowDecisions/createTree/', @treeChoiceChain, @watchedDirExpectTransfer);
+
+UPDATE MicroServiceChainLinksExitCodes SET nextMicroServiceChainLink=@treeChoiceWatchMSCL WHERE microServiceChainLink=@characterizeExtractMetadata;
+UPDATE MicroServiceChainLinks SET defaultNextChainLink=@treeChoiceWatchMSCL WHERE pk=@characterizeExtractMetadata;
+
+INSERT INTO StandardTasksConfigs (pk, requiresOutputLock, execute, arguments) VALUES ('f1a272df-bb3f-463e-95c0-6d2062bddfb8', 0, 'createDirectoryTree_v0.0', '"%SIPDirectory%" -o "%SIPDirectory%metadata/directory_tree.txt"');
+INSERT INTO TasksConfigs (pk, taskType, taskTypePKReference, description) VALUES ('ede67763-2a12-4e8f-8c36-e266d3f05c6b', '36b2e239-4a57-4aa5-8ebc-7a29139baca6', 'f1a272df-bb3f-463e-95c0-6d2062bddfb8', 'Save directory tree');
+INSERT INTO MicroServiceChainLinks(pk, microserviceGroup, defaultExitMessage, currentTask, defaultNextChainLink) values (@treeMSCL, 'Characterize and extract metadata', 'Failed', 'ede67763-2a12-4e8f-8c36-e266d3f05c6b', @postTreeMSCL);
+INSERT INTO MicroServiceChainLinksExitCodes (pk, microServiceChainLink, exitCode, nextMicroServiceChainLink, exitMessage) VALUES ('882486b7-034e-49b8-bc65-2f6d8946bdcd', @treeMSCL, 0, '1b1a4565-b501-407b-b40f-2f20889423f1', 'Completed successfully');
+
+INSERT INTO MicroServiceChains (pk, startingLink, description) VALUES (@treeChain, @treeMSCL, 'Yes');
+INSERT INTO MicroServiceChains (pk, startingLink, description) VALUES (@noTreeChain, @postTreeMSCL, 'No');
+INSERT INTO MicroServiceChainChoice (pk, choiceAvailableAtLink, chainAvailable) VALUES ('171c7418-53c1-4d00-bcac-f77012050d1b', @treeChoiceMSCL, @treeChain);
+INSERT INTO MicroServiceChainChoice (pk, choiceAvailableAtLink, chainAvailable) VALUES ('63f0e429-1435-48e2-8eb0-dcb68e507168', @treeChoiceMSCL, @noTreeChain);
+-- /Issue 6566 Tree
